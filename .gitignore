@@ -1,0 +1,22 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.venv/
+env/
+miniconda3/
+
+# Logs / checkpoints
+logs/
+tf-logs/
+*.ckpt
+*.pth
+# Data
+data/
+autodl-tmp/
+autodl-pub/
+
+# OS / editor
+.DS_Store
+.vscode/
