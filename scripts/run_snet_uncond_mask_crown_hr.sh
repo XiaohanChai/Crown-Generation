@@ -28,10 +28,10 @@ category="$3"
 df_yaml="octfusion_${dataset_mode}_uncond.yaml"
 df_cfg="configs/${df_yaml}"
 vq_model="GraphVAE"
-vq_yaml="vae_${dataset_mode}_eval_mask_crown_750.yaml"
+vq_yaml="vae_${dataset_mode}_eval_crown_585.yaml"
 vq_cfg="configs/${vq_yaml}"
 # vq_ckpt="saved_ckpt/vae-ckpt/vae-shapenet-depth-8.pth"
-vq_ckpt="/root/octfusion/logs/mask_crown_750_union/test_snet_lr1e-3/ckpt/vae_steps-latest.pth"
+vq_ckpt="/root/octfusion/logs/crown_585_union/test_snet_lr1e-3/ckpt/vae_steps-latest.pth"
 
 ### hyper params ###
 lr=2e-4
@@ -56,10 +56,10 @@ if [ $mode = "train" ]; then
     # pretrain_ckpt="saved_ckpt/diffusion-ckpt/${category}/df_steps-split.pth"
     # pretrain_ckpt="/root/octfusion/logs/crown_union/union_2t_test_lr2e-4/ckpt/df_steps-latest.pth"
     # echo skip
-    pretrain_ckpt="/root/octfusion/logs/mask_crown_750_union/union_2t_test_lr2e-4/ckpt/df_steps-latest.pth"
+    pretrain_ckpt="/root/octfusion/logs/crown_585_union/union_2t_test_lr2e-4/ckpt/df_steps-latest.pth"
 else
     # ckpt="saved_ckpt/diffusion-ckpt/${category}/df_steps-union.pth"
-    ckpt="/root/octfusion/logs/mask_crown_750_union/union_2t_test_lr2e-4/ckpt/df_steps-latest.pth"
+    ckpt="/root/octfusion/logs/crown_585_union/union_2t_test_lr2e-4/ckpt/df_steps-latest.pth"
 fi
 
 ####################
@@ -132,3 +132,4 @@ fi
 # sh scripts/run_snet_uncond_mask_crown_hr.sh generate hr mask_crown_demo
 # sh scripts/run_snet_uncond_mask_crown_hr.sh train hr mask_crown_750
 # sh scripts/run_snet_uncond_mask_crown_hr.sh generate hr mask_crown_750
+# sh scripts/run_snet_uncond_mask_crown_hr.sh generate hr crown_585

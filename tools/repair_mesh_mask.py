@@ -33,10 +33,11 @@ args = parser.parse_args()
 
 size = args.sdf_size        # resolution of SDF
 level = 2.0 / size            # 2/128 = 0.015625
+# level = 0               #set level=0 to disable mesh2sdf's own simplification, which may cause some details to be lost. 直接用原始mesh来计算sdf，虽然慢一点但是能保留更多细节。
 shape_scale = 0.5    # rescale the shape into [-0.5, 0.5]
 project_folder = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
-root_folder = os.path.join(project_folder, 'data/mask_crown_750/')
-file_folder = 'data/mask_crown_750/'
+root_folder = os.path.join(project_folder, 'data/mask_crown/crown_585')
+file_folder = 'data/mask_crown/crown_585'
 
 
 def create_flag_file(filename):
@@ -205,7 +206,7 @@ def run_mesh2sdf_split():
 
     print('-> Run mesh2sdf.')
     mesh_scale = 0.8
-    filenames = get_filenames('mask_crown_350_2.txt')
+    filenames = get_filenames('crown_585.txt')
     GROUP_SIZE = 3
 
     total_groups = (len(filenames) + GROUP_SIZE - 1) // GROUP_SIZE
@@ -242,27 +243,35 @@ def run_mesh2sdf_split():
         # Split mesh into connected components
         mesh_components = mesh.split(only_watertight=False)
 
+        # NOTE: this is for square mask, that we leave square shape
         # sort by vertices number to keep the largest 2
+        # if len(mesh_components) > 2:
+        #     sorted_components = sorted(mesh_components, key=lambda x: len(x.vertices), reverse=True)
+        #     if 'mask_' in filename:
+        #         # Keep the two largest components
+        #         kept_components = sorted_components[:2]
+        #         # Find and keep one cube-like component if it exists
+        #         for component in sorted_components[2:]:
+        #             if component.vertices.shape == (8, 3) and component.faces.shape == (12, 3):
+        #                 kept_components.append(component)
+        #         mesh_components = kept_components
+        #     else:
+        #         mesh_components = sorted_components[:2]
+        # NOTE: this is for unstructured mask
         if len(mesh_components) > 2:
             sorted_components = sorted(mesh_components, key=lambda x: len(x.vertices), reverse=True)
-            if 'mask' in filename:
-                # Keep the two largest components
-                kept_components = sorted_components[:2]
-                # Find and keep one cube-like component if it exists
-                for component in sorted_components[2:]:
-                    if component.vertices.shape == (8, 3) and component.faces.shape == (12, 3):
-                        kept_components.append(component)
-                mesh_components = kept_components
-            else:
-                mesh_components = sorted_components[:2]
-        # import pdb; pdb.set_trace()
+            kept_components = sorted_components[:2]
+            for component in sorted_components[2:]:
+                if component.vertices.shape[0] > 500 and component.faces.shape[0] > 500:
+                    kept_components.append(component)
+            mesh_components = kept_components
         
         # mesh = trimesh.load("/root/octfusion/data/mask_crown_350/mesh_obj/pair_crown/data0001/model.obj", force='mesh')
         # _ = mesh.export("/root/data0001.obj")
         vertices = mesh.vertices
         bbmin, bbmax = vertices.min(0), vertices.max(0)  # 每次都计算
 
-        if 'mask' in filename:
+        if 'mask_' in filename:
             center = (bbmin + bbmax) * 0.5
             scale = 2.0 * mesh_scale / (bbmax - bbmin).max()
             # Apply the same transformation to all components
@@ -309,14 +318,14 @@ def run_mesh2sdf_split_mp():
 
     print('-> Run mesh2sdf split (mp).')
     mesh_scale = 0.8
-    filenames = get_filenames('mask_crown_350.txt')
+    filenames = get_filenames('crown_585.txt')
     if not filenames:
         print('No meshes to process.')
         return
 
     GROUP_SIZE = 3
     if len(filenames) % GROUP_SIZE != 0:
-        raise ValueError('mask_crown_350.txt count must be divisible by 3 to keep mask-pair grouping intact.')
+        raise ValueError('crown_585.txt count must be divisible by 3 to keep mask-pair grouping intact.')
 
     num_meshes = len(filenames) // GROUP_SIZE
     # num_processes = min(32, mp.cpu_count(), num_meshes)
@@ -347,21 +356,31 @@ def run_mesh2sdf_split_mp():
             mesh = trimesh.load(filename_raw, force='mesh')
             mesh_components = mesh.split(only_watertight=False)
 
+            # NOTE: this is for square mask, that we leave square shape
+            # if len(mesh_components) > 2:
+            #     sorted_components = sorted(mesh_components, key=lambda x: len(x.vertices), reverse=True)
+            #     if 'mask_' in filename:
+            #         kept_components = sorted_components[:2]
+            #         for component in sorted_components[2:]:
+            #             if component.vertices.shape == (8, 3) and component.faces.shape == (12, 3):
+            #                 kept_components.append(component)
+            #         mesh_components = kept_components
+            #     else:
+            #         mesh_components = sorted_components[:2]
+            # NOTE: this is for unstructured mask
             if len(mesh_components) > 2:
                 sorted_components = sorted(mesh_components, key=lambda x: len(x.vertices), reverse=True)
-                if 'mask' in filename:
-                    kept_components = sorted_components[:2]
-                    for component in sorted_components[2:]:
-                        if component.vertices.shape == (8, 3) and component.faces.shape == (12, 3):
-                            kept_components.append(component)
-                    mesh_components = kept_components
-                else:
-                    mesh_components = sorted_components[:2]
+                kept_components = sorted_components[:2]
+                for component in sorted_components[2:]:
+                    if component.vertices.shape[0] > 500 and component.faces.shape[0] > 500:
+                        kept_components.append(component)
+                mesh_components = kept_components
+
 
             vertices = mesh.vertices
             bbmin, bbmax = vertices.min(0), vertices.max(0)
 
-            if 'mask' in filename:
+            if 'mask_' in filename:
                 center = (bbmin + bbmax) * 0.5
                 scale = 2.0 * mesh_scale / (bbmax - bbmin).max()
                 for component in mesh_components:
@@ -605,7 +624,7 @@ def sample_pts_from_mesh():
     num_interior = 10000
     mesh_folder = os.path.join(root_folder, 'mesh')
     output_folder = os.path.join(root_folder, 'dataset')
-    filenames = get_filenames('mask_crown_350_2.txt')
+    filenames = get_filenames('crown_585.txt')
     GROUP_SIZE = 3
 
     total_groups = (len(filenames) + GROUP_SIZE - 1) // GROUP_SIZE
@@ -636,7 +655,7 @@ def sample_pts_from_mesh():
         points, idx = trimesh.sample.sample_surface(mesh, num_samples)
         normals = mesh.face_normals[idx]
 
-        if 'bbox' in filename:
+        if filename == 'mask':
             # 2. 内部采样 (假设是 watertight, 直接用 volume_mesh)
             interior_points = trimesh.sample.volume_mesh(mesh, num_interior)
             # 用最近三角面法向近似内部点的外法向
@@ -663,7 +682,7 @@ def sample_sdf():
                                     [1, 0, 0], [1, 0, 1], [1, 1, 0], [1, 1, 1]])
 
     print('-> Sample SDFs from the ground truth.')
-    filenames = get_filenames('mask_crown_350_2.txt')
+    filenames = get_filenames('crown_585.txt')
     # for i in tqdm(range(args.start, args.end), ncols=80):
     for i in range(len(filenames)):
         filename = filenames[i]
@@ -743,7 +762,7 @@ def sample_occu():
                                      [1, 0, 0], [1, 0, 1], [1, 1, 0], [1, 1, 1]])
 
     #filenames = get_filenames('test.txt') + get_filenames('test_unseen5.txt')
-    filenames = get_filenames('mask_crown_350_2.txt')
+    filenames = get_filenames('crown_585.txt')
     for filename in tqdm(filenames, ncols=80):
         filename_sdf = os.path.join(root_folder, 'sdf', filename + '.npy')
         filename_occu = os.path.join(root_folder, 'dataset', filename, 'points')
@@ -781,7 +800,7 @@ def generate_test_points():
     noise_std = 0.005
     point_sample_num = 3000
     # filenames = get_filenames('test.txt') + get_filenames('test_unseen5.txt')
-    filenames = get_filenames('mask_crown_350_2.txt')
+    filenames = get_filenames('crown_585.txt')
     for filename in tqdm(filenames, ncols=80):
         filename_pts = os.path.join(
                 root_folder, 'dataset', filename, 'pointcloud.npz')

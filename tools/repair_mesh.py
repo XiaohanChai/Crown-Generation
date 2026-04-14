@@ -33,7 +33,8 @@ args = parser.parse_args()
 
 size = args.sdf_size        # resolution of SDF
 size = 128                 # resolution of SDF
-level = 0.015            # 2/128 = 0.015625
+# level = 0.015            # 2/128 = 0.015625
+level = 0                  # 修改等值面为0，之前是0.015，感觉有点大了，导致生成的mesh有点偏离原始mesh了，改成0之后就完全重合了。
 shape_scale = 0.5    # rescale the shape into [-0.5, 0.5]
 project_folder = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 root_folder = os.path.join(project_folder, 'data/ShapeNet')

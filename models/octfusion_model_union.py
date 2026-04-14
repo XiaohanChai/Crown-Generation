@@ -247,7 +247,7 @@ class OctFusionModel(BaseModel):
         bbox_names = []
         oppose_crown_names = []
         for suffix in suffixs:
-            bbox_name = '/root/octfusion/data/' + self.opt.category + '/dataset/' + 'bbox_crown/' + suffix + '/pointcloud.npz'
+            bbox_name = '/root/octfusion/data/mask_crown/' + self.opt.category + '/dataset/' + 'mask/' + suffix + '/pointcloud.npz'
             # oppose_crown_name = '/root/octfusion/data/' + self.opt.category + '/dataset/' + 'oppose_crown/' + suffix + '/pointcloud.npz'
             bbox_names.append(bbox_name)
             # oppose_crown_names.append(oppose_crown_name)

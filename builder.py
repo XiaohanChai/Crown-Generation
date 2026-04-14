@@ -13,7 +13,7 @@ import models
 
 def get_dataset(flags):
   print('[*] Dataset name: %s' % flags.name)
-  if flags.name.lower() == 'shapenet' or flags.name.lower() == 'mask_crown' or flags.name.lower() == 'mask_crown_demo' or flags.name.lower() == 'mask_crown_750':
+  if flags.name.lower() == 'shapenet' or flags.name.lower() == 'mask_crown' or flags.name.lower() == 'mask_crown_demo' or flags.name.lower() == 'crown_585':
     return datasets.dualoctree_snet.get_shapenet_dataset(flags)
   else:
     raise ValueError

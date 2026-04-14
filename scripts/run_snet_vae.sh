@@ -40,7 +40,7 @@ category="$3"
 df_yaml="octfusion_${dataset_mode}_uncond.yaml"
 df_cfg="configs/${df_yaml}"
 vq_model="GraphVAE"
-vq_yaml="vae_${dataset_mode}_train_mask_crown_750.yaml"
+vq_yaml="vae_${dataset_mode}_train_crown_585.yaml"
 vq_cfg="configs/${vq_yaml}"
 # vq_ckpt="saved_ckpt/vae-ckpt/vae-shapenet-depth-8.pth"
 
