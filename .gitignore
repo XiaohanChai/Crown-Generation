@@ -17,6 +17,7 @@ tf-logs/
 data/
 autodl-tmp/
 autodl-pub/
+*.obj
 
 # OS / editor
 .DS_Store
